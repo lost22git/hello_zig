@@ -211,6 +211,19 @@ test "string format (specify heap allocator)" {
     try testing.expectEqualStrings("@@@你好，世界", formatted);
 }
 
+test "string format (specify ArrayList writer print)" {
+    const allocator = testing.allocator;
+
+    const s = "你好";
+    var list = try std.ArrayList(u8).initCapacity(allocator, s.len);
+    defer list.deinit();
+
+    try list.writer().print("{s:@>5}，世界", .{s});
+    const formatted = list.items;
+
+    try testing.expectEqualStrings("@@@你好，世界", formatted);
+}
+
 test "string uppper/lower (specify stack buffer)" {
     const s = "你好hELLo";
 
@@ -224,7 +237,7 @@ test "string uppper/lower (specify stack buffer)" {
     try testing.expectEqualStrings("你好hello", lower);
 }
 
-test "string upper/lower (specify heap)" {
+test "string upper/lower (specify heap allocator)" {
     const allocator = testing.allocator;
 
     const s = "你好hELLo";
