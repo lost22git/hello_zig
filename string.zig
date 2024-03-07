@@ -165,4 +165,75 @@ test "string startswith / endswith" {
     try testing.expectStringEndsWith("hello", "lo");
 }
 
-test "string replace" {}
+test "string replace" {
+    const s = "你好，你好";
+    var output = [_]u8{0} ** 30;
+
+    const replaced_count = mem.replace(u8, s, "你", "你们", &output);
+
+    const index_of_string_end = mem.indexOf(u8, &output, &[_]u8{0}).?;
+
+    try testing.expectEqual(replaced_count, 2);
+    try testing.expectEqualStrings(output[0..index_of_string_end], "你们好，你们好");
+}
+
+test "string format (specify stack fixed buffer writer)" {
+    var buffer = [_]u8{0} ** 20;
+    var buffer_stream = std.io.fixedBufferStream(&buffer);
+    const buffer_writer = buffer_stream.writer();
+    // or
+    // var buffer_source_stream = std.io.StreamSource{ .buffer = buffer_stream };
+    // const buffer_writer = buffer_source_stream.writer();
+
+    const s = "你好";
+    try std.fmt.format(buffer_writer, "{s:@>5}，世界", .{s});
+
+    const formatted = buffer_stream.getWritten();
+
+    try testing.expectEqualStrings("@@@你好，世界", formatted);
+}
+
+test "string format (specify stack fixed buffer)" {
+    var buffer = [_]u8{0} ** 20;
+    const s = "你好";
+    const formatted = try std.fmt.bufPrint(&buffer, "{s:@>5}，世界", .{s});
+
+    try testing.expectEqualStrings("@@@你好，世界", formatted);
+}
+
+test "string format (specify heap allocator)" {
+    var allocator = testing.allocator;
+
+    const s = "你好";
+    const formatted = try std.fmt.allocPrint(allocator, "{s:@>5}，世界", .{s});
+    defer allocator.free(formatted);
+
+    try testing.expectEqualStrings("@@@你好，世界", formatted);
+}
+
+test "string uppper/lower (specify stack buffer)" {
+    const s = "你好hELLo";
+
+    var upper_buffer: [s.len]u8 = undefined;
+    var lower_buffer: [s.len]u8 = undefined;
+
+    const upper = std.ascii.upperString(&upper_buffer, s);
+    const lower = std.ascii.lowerString(&lower_buffer, s);
+
+    try testing.expectEqualStrings("你好HELLO", upper);
+    try testing.expectEqualStrings("你好hello", lower);
+}
+
+test "string upper/lower (specify heap)" {
+    const allocator = testing.allocator;
+
+    const s = "你好hELLo";
+
+    const upper = try std.ascii.allocUpperString(allocator, s);
+    defer allocator.free(upper);
+    const lower = try std.ascii.allocLowerString(allocator, s);
+    defer allocator.free(lower);
+
+    try testing.expectEqualStrings("你好HELLO", upper);
+    try testing.expectEqualStrings("你好hello", lower);
+}
