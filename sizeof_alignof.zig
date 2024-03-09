@@ -1,4 +1,4 @@
-///usr/bin/env zig test "$0" "$@" ; exit $?
+///usr/bin/env zig test -freference-trace "$0" "$@" ; exit $?
 const std = @import("std");
 const testing = std.testing;
 
@@ -288,11 +288,11 @@ test "error union" {
     try testing.expectEqual(@sizeOf(FileOpenError!u32), (1 + 3) + 4);
     try testing.expectEqual(@alignOf(FileOpenError!u32), 4);
 
-    // NOTE: without tag?
+    // NOTE: without tag, 0 表示 ok
     try testing.expectEqual(@sizeOf(FileOpenError!u0), 2);
     try testing.expectEqual(@alignOf(FileOpenError!u0), 2);
 
-    // NOTE: without tag?
+    // NOTE: without tag? 0 表示 ok
     try testing.expectEqual(@sizeOf(FileOpenError!void), 2);
     try testing.expectEqual(@alignOf(FileOpenError!void), 2);
 
@@ -309,12 +309,49 @@ test "optional" {
     try testing.expectEqual(@sizeOf(?u32), (1 + 3) + 4);
     try testing.expectEqual(@alignOf(?u32), 4);
 
-    // NOTE: without tag, ptr == 0 来表示 none
+    // NOTE: without tag, 0 来表示 none
     try testing.expectEqual(@sizeOf(?*u8), 8);
     try testing.expectEqual(@alignOf(?*u8), 8);
+
+    // NOTE: without tag, 0 来表示 none
+    try testing.expectEqual(@sizeOf(?error{MyError}), 2);
+    try testing.expectEqual(@alignOf(?error{MyError}), 2);
 
     // compare with union
     const MyOptionalUnion = union(enum) { some: *u8, none: void };
     try testing.expectEqual(@sizeOf(MyOptionalUnion), (1 + 7) + 8);
     try testing.expectEqual(@alignOf(MyOptionalUnion), 8);
+}
+
+test "allocator" {
+    try testing.expectEqual(16, @sizeOf(std.mem.Allocator));
+    try testing.expectEqual(8, @alignOf(std.mem.Allocator));
+
+    try testing.expectEqual(0, @offsetOf(std.mem.Allocator, "ptr")); //  *anyopaque,
+    try testing.expectEqual(8, @offsetOf(std.mem.Allocator, "vtable")); // *const VTable
+
+    try testing.expectEqual(24, @sizeOf(std.mem.Allocator.VTable));
+    try testing.expectEqual(8, @alignOf(std.mem.Allocator.VTable));
+    try testing.expectEqual(0, @offsetOf(std.mem.Allocator.VTable, "alloc")); // *const fn
+    try testing.expectEqual(8, @offsetOf(std.mem.Allocator.VTable, "resize")); // *const fn
+    try testing.expectEqual(16, @offsetOf(std.mem.Allocator.VTable, "free")); // *const fn
+}
+
+test "arraylist" {
+    // ArrayList
+    try testing.expectEqual(40, @sizeOf(std.ArrayList(u8)));
+    try testing.expectEqual(8, @alignOf(std.ArrayList(u8)));
+    try testing.expectEqual(0, @offsetOf(std.ArrayList(u8), "items")); // Slice
+    try testing.expectEqual(16, @offsetOf(std.ArrayList(u8), "capacity")); // usize
+    try testing.expectEqual(24, @offsetOf(std.ArrayList(u8), "allocator")); // Allocator
+
+    // ArrayListUnmanaged
+    try testing.expectEqual(24, @sizeOf(std.ArrayListUnmanaged(u8)));
+    try testing.expectEqual(8, @alignOf(std.ArrayListUnmanaged(u8)));
+    try testing.expectEqual(0, @offsetOf(std.ArrayListUnmanaged(u8), "items")); // Slice
+    try testing.expectEqual(16, @offsetOf(std.ArrayListUnmanaged(u8), "capacity")); // usize
+}
+
+test "hashmap" {
+    //
 }
