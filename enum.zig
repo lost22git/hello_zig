@@ -21,7 +21,7 @@ test "enum <=> int" {
     try testing.expectEqual(Color.blue, try std.meta.intToEnum(Color, 12));
 }
 
-fn enumFromInt(T: type, int: anytype) T {
+fn enumFromInt(comptime T: type, int: anytype) T {
     const e: T = @enumFromInt(int);
     return e;
 }
@@ -30,14 +30,14 @@ test "enum <=> string" {
     const Color = enum { red, green, blue };
 
     // @tagName
-    try testing.expectEqual("red", @tagName(Color.red));
-    try testing.expectEqual("green", @tagName(Color.green));
-    try testing.expectEqual("blue", @tagName(Color.blue));
+    try testing.expectEqualStrings("red", @tagName(Color.red));
+    try testing.expectEqualStrings("green", @tagName(Color.green));
+    try testing.expectEqualStrings("blue", @tagName(Color.blue));
 
     // @tagName safer version:  std.enums.tagName
-    try testing.expectEqual("red", std.enums.tagName(Color, Color.red).?);
-    try testing.expectEqual("green", std.enums.tagName(Color, Color.green).?);
-    try testing.expectEqual("blue", std.enums.tagName(Color, Color.blue).?);
+    try testing.expectEqualStrings("red", std.enums.tagName(Color, Color.red).?);
+    try testing.expectEqualStrings("green", std.enums.tagName(Color, Color.green).?);
+    try testing.expectEqualStrings("blue", std.enums.tagName(Color, Color.blue).?);
 
     // comptime: std.enums.nameCast
     try testing.expectEqual(Color.red, std.enums.nameCast(Color, "red"));
