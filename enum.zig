@@ -1,4 +1,4 @@
-///usr/bin/env zig test "$0" "$@" ; exit $?
+///usr/bin/env zig test -freference-trace "$0" "$@" ; exit $?
 const std = @import("std");
 const testing = std.testing;
 
@@ -14,6 +14,11 @@ test "enum <=> int" {
     try testing.expectEqual(Color.red, enumFromInt(Color, 10));
     try testing.expectEqual(Color.green, enumFromInt(Color, 11));
     try testing.expectEqual(Color.blue, enumFromInt(Color, 12));
+
+    // std.meta.intToEnum: safer version of @enumFromInt
+    try testing.expectEqual(Color.red, try std.meta.intToEnum(Color, 10));
+    try testing.expectEqual(Color.green, try std.meta.intToEnum(Color, 11));
+    try testing.expectEqual(Color.blue, try std.meta.intToEnum(Color, 12));
 }
 
 fn enumFromInt(T: type, int: anytype) T {
@@ -38,6 +43,11 @@ test "enum <=> string" {
     try testing.expectEqual(Color.red, std.enums.nameCast(Color, "red"));
     try testing.expectEqual(Color.green, std.enums.nameCast(Color, "green"));
     try testing.expectEqual(Color.blue, std.enums.nameCast(Color, "blue"));
+
+    // std.meta.stringToEnum: runtime version std.enum.nameCast
+    try testing.expectEqual(Color.red, std.meta.stringToEnum(Color, "red").?);
+    try testing.expectEqual(Color.green, std.meta.stringToEnum(Color, "green").?);
+    try testing.expectEqual(Color.blue, std.meta.stringToEnum(Color, "blue").?);
 }
 
 test "enum values" {
