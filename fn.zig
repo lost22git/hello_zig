@@ -2,6 +2,11 @@
 const std = @import("std");
 const testing = std.testing;
 
+fn not_suuport_overrload() void {}
+
+// NOTE: compilation error: redeclaration of `not_suuport_overrload`
+// fn not_suuport_overrload(_: u0) void {}
+
 fn ptrArgs(a: *u32) void {
     _ = a;
 }
