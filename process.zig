@@ -11,21 +11,21 @@ test "get cwd path" {
     std.debug.print("cwd path: {s}\n", .{cwdPath});
 }
 
-// test "get env vars" {
-//     const allocator = testing.allocator;
-//
-//     const hasPath = try std.process.hasEnvVar(allocator, "path");
-//
-//     if (hasPath) {
-//         const path = try std.process.getEnvVarOwned(allocator, "path");
-//         defer allocator.free(path);
-//
-//         var iter = std.mem.splitAny(u8, path, ";");
-//         while (iter.next()) |elm| {
-//             std.debug.print("{s}\n", .{elm});
-//         }
-//     }
-// }
+test "get env vars" {
+    const allocator = testing.allocator;
+
+    const hasPath = try std.process.hasEnvVar(allocator, "path");
+
+    if (hasPath) {
+        const path = try std.process.getEnvVarOwned(allocator, "path");
+        defer allocator.free(path);
+
+        var iter = std.mem.splitAny(u8, path, ";");
+        while (iter.next()) |elm| {
+            std.debug.print("{s}\n", .{elm});
+        }
+    }
+}
 
 test "run cmd success" {
     const allocator = testing.allocator;
@@ -56,6 +56,24 @@ test "run cmd failed" {
     try testing.expectEqualStrings("", result.stdout);
     try testing.expect(std.mem.indexOf(u8, result.stderr, "error") != null);
 }
+
+// test "run cmd redirect stderr to stdout" {
+//     const allocator = testing.allocator;
+//
+//     var p = std.process.Child.init(&[_][]const u8{ "zig", "-asdfak" }, allocator);
+//     p.stdout_behavior = .Pipe;
+//     p.stderr = p.stdout; // NOTE: not works: redirect stderrr to stdout
+//
+//     try p.spawn();
+//
+//     const stdout = try p.stdout.?.reader().readAllAlloc(allocator, 1024 * 64);
+//     defer allocator.free(stdout);
+//
+//     const term = try p.wait();
+//
+//     try testing.expectEqual(1, term.Exited);
+//     try testing.expect(std.mem.indexOf(u8, stdout, "error") != null);
+// }
 
 test "run cmd not found" {
     const allocator = testing.allocator;
