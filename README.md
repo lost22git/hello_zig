@@ -6,3 +6,4 @@
 - https://github.com/ziglang/zig-spec
 - https://alic.dev/blog/dense-enums
 - [ATTACK of the KILLER FEATURES](https://www.youtube.com/watch?v=dEIsJPpCZYg)
+- https://github.com/SuperAuguste/zig-design-patterns
